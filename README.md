@@ -1,3 +1,3 @@
-Witam, \n
-main2 - tablice, zapisywanie do pliku itd \n
-main - klasy, obiekty te sprawy
+Witam,  
+main - klasy obiekty te sprawy  
+main2 - tablice itd  
