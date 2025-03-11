@@ -15,43 +15,45 @@ struct Product {
     int quantity;
 };
 
-Product products[MAX_PRODUCTS];
-int productCount = 0;
+Product products[MAX_PRODUCTS]; // Tablica przechowująca produkty
+int productCount = 0;           // Liczba produktów w tablicy
 
-// Dodawanie produktu
+// Funkcja dodająca nowy produkt
 void addProduct() {
     if (productCount >= MAX_PRODUCTS) {
         cout << "Baza produktów jest pełna!" << endl;
         return;
     }
 
-    Product p;
-    p.id = productCount + 1;
+    Product newProduct;
+    newProduct.id = productCount + 1;
 
     cout << "Podaj nazwę produktu: ";
-    cin.ignore();
-    cin.getline(p.name, MAX_LEN);
+    cin.ignore(); // Wyczyszczenie wczesniejszych inputow
+    cin.getline(newProduct.name, MAX_LEN); // Wczytanie całej linii tekstu jako nazwy produktu
 
     cout << "Podaj kategorię produktu: ";
-    cin.getline(p.category, MAX_LEN);
+    cin.getline(newProduct.category, MAX_LEN);
 
     cout << "Podaj cenę: ";
-    cin >> p.price;
+    cin >> newProduct.price;
 
     cout << "Podaj ilość: ";
-    cin >> p.quantity;
+    cin >> newProduct.quantity;
 
-    products[productCount++] = p;
+    products[productCount++] = newProduct; // Dodanie nowego produktu do tablicy na pozycji prodcutCount
     cout << "Produkt dodany!" << endl;
 }
 
-// Usuwanie produktu po ID
+// Funkcja usuwająca produkt po ID
 void removeProduct() {
     int id;
     cout << "Podaj ID produktu do usunięcia: ";
     cin >> id;
 
-    int index = -1;
+    int index = -1; // Defaultowo produkt jest nieodnaleziony (brak takiego ID)
+
+    // Szukanie produktu o podanym ID
     for (int i = 0; i < productCount; i++) {
         if (products[i].id == id) {
             index = i;
@@ -60,18 +62,20 @@ void removeProduct() {
     }
 
     if (index == -1) {
-        cout << "Produkt nie znaleziony!" << endl;
+        cout << "Nie znaleziono produktu o podanym ID!" << endl;
         return;
     }
 
+    // Przesunięcie produktów w tablicy, aby usunąć wybrany produkt
     for (int i = index; i < productCount - 1; i++) {
         products[i] = products[i + 1];
     }
-    productCount--;
+
+    productCount--;  // Zmniejszenie liczby produktów
     cout << "Produkt usunięty!" << endl;
 }
 
-// Zapisywanie produktów do pliku za pomocą fprintf()
+// Funkcja zapisująca produkty do pliku
 void saveToFile() {
     FILE* file = fopen("products.txt", "w");
     if (!file) {
@@ -80,16 +84,15 @@ void saveToFile() {
     }
 
     for (int i = 0; i < productCount; i++) {
-        fprintf(file, "%d %s %s %.2f %d\n",
-                products[i].id, products[i].name, products[i].category,
-                products[i].price, products[i].quantity);
+        fprintf(file, "%d %s %s %.2f %d\n", products[i].id, products[i].name, 
+                products[i].category, products[i].price, products[i].quantity);
     }
 
     fclose(file);
-    cout << "Zapisano do pliku!" << endl;
+    cout << "Produkty zapisane do pliku!" << endl;
 }
 
-// Wczytywanie produktów z pliku za pomocą fscanf()
+// Funkcja wczytująca produkty z pliku
 void loadFromFile() {
     FILE* file = fopen("products.txt", "r");
     if (!file) {
@@ -98,18 +101,18 @@ void loadFromFile() {
     }
 
     productCount = 0;
-    while (fscanf(file, "%d %s %s %f %d",
+    while (fscanf(file, "%d %s %s %f %d", // Podanie jakich typow wczytywane sa dane
                   &products[productCount].id, products[productCount].name,
-                  products[productCount].category, &products[productCount].price,
-                  &products[productCount].quantity) != EOF) {
-        productCount++;
+                  products[productCount].category, &products[productCount].price, // Przypisanie odpowiednich danych do pol struktury product, products[]
+                  &products[productCount].quantity) != EOF) { // EOF To End Of File funckji fscanf() i konczy sie z zakonczeniem petli while
+        productCount++; // Z kazdym wczytanym produktem dodajemy jedna liczbe do productCount aby sledzic ich liczbe
     }
 
     fclose(file);
-    cout << "Załadowano produkty!" << endl;
+    cout << "Produkty wczytane z pliku!" << endl;
 }
 
-// Wyświetlanie produktów
+// Funkcja wyświetlająca listę produktów
 void displayProducts() {
     if (productCount == 0) {
         cout << "Brak produktów!" << endl;
@@ -117,14 +120,13 @@ void displayProducts() {
     }
 
     for (int i = 0; i < productCount; i++) {
-        cout << "ID: " << products[i].id << ", Nazwa: " << products[i].name
-             << ", Kategoria: " << products[i].category
-             << ", Cena: " << products[i].price
-             << ", Ilość: " << products[i].quantity << endl;
+        cout << products[i].id << ". " << products[i].name << " | " 
+             << products[i].category << " | " << products[i].price << " zł | " 
+             << products[i].quantity << " szt." << endl;
     }
 }
 
-// Menu aplikacji
+// Funkcja wyświetlająca menu i obsługująca wybory użytkownika
 void menu() {
     int choice;
     while (true) {
