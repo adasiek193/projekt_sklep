@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstring>
-#include <cstdio>  // Do obsługi plików: fopen(), fprintf(), fscanf(), fclose()
 
 #define MAX_PRODUCTS 100
 #define MAX_LEN 50
@@ -16,7 +15,8 @@ public:
     float price;
     int quantity;
 
-    Product(int id, const char* name, const char* category, float price, int quantity) {
+    // Konstruktor do inicjalizacji produktu
+    Product(int id = 0, const char* name = "", const char* category = "", float price = 0, int quantity = 0) {
         this->id = id;
         strncpy(this->name, name, MAX_LEN);
         strncpy(this->category, category, MAX_LEN);
@@ -24,24 +24,24 @@ public:
         this->quantity = quantity;
     }
 
-    void display() {
+    // Metoda do wyświetlania informacji o produkcie
+    void display() const {
         cout << "ID: " << id << ", Nazwa: " << name << ", Kategoria: " << category
-             << ", Cena: " << price << ", Ilość: " << quantity << endl;
+             << ", Cena: " << price << " zł, Ilość: " << quantity << " szt." << endl;
     }
 };
 
-// Klasa zarządzająca produktami i obsługą pliku
+// Klasa zarządzająca produktami
 class ProductManager {
 private:
-    Product* products[MAX_PRODUCTS];  // Tablica wskaźników na produkty
-    int count = 0;  // Licznik produktów
-    const char* filename = "products.txt";  // Plik do przechowywania danych
+    Product products[MAX_PRODUCTS];  // Tablica przechowująca produkty
+    int productCount = 0;            // Liczba produktów w tablicy
 
 public:
-    // Dodaje nowy produkt i zapisuje do pliku
+    // Dodaje nowy produkt
     void addProduct() {
-        if (count >= MAX_PRODUCTS) {
-            cout << "Nie można dodać więcej produktów!" << endl;
+        if (productCount >= MAX_PRODUCTS) {
+            cout << "Nie można dodać więcej produktów! Osiągnięto limit." << endl;
             return;
         }
 
@@ -49,45 +49,41 @@ public:
         float price;
         int quantity;
 
-        cout << "Podaj nazwę: ";
+        cout << "Podaj nazwę produktu: ";
         cin.ignore();
         cin.getline(name, MAX_LEN);
 
-        cout << "Podaj kategorię: ";
+        cout << "Podaj kategorię produktu: ";
         cin.getline(category, MAX_LEN);
 
-        cout << "Podaj cenę: ";
+        cout << "Podaj cenę produktu: ";
         cin >> price;
 
-        cout << "Podaj ilość: ";
+        cout << "Podaj ilość produktu: ";
         cin >> quantity;
 
-        products[count] = new Product(count + 1, name, category, price, quantity);
-        count++;
-
-        cout << "Produkt dodany!" << endl;
-        saveToFile();  // Zapisujemy dane do pliku po dodaniu produktu
+        products[productCount++] = Product(productCount + 1, name, category, price, quantity);
+        cout << "Produkt dodany pomyślnie!" << endl;
     }
 
-    // Usuwa produkt po ID i zapisuje do pliku
+    // Usuwa produkt po ID
     void removeProduct() {
+        if (productCount == 0) {
+            cout << "Brak produktów do usunięcia!" << endl;
+            return;
+        }
+
         int id;
         cout << "Podaj ID produktu do usunięcia: ";
         cin >> id;
 
-        for (int i = 0; i < count; i++) {
-            if (products[i]->id == id) {
-                delete products[i];  // Usuwamy produkt z pamięci
-
-                // Przesuwamy pozostałe produkty, aby uniknąć pustego miejsca w tablicy
-                for (int j = i; j < count - 1; j++) {
+        for (int i = 0; i < productCount; i++) {
+            if (products[i].id == id) {
+                for (int j = i; j < productCount - 1; j++) {
                     products[j] = products[j + 1];
                 }
-
-                count--;
-                cout << "Produkt usunięty!" << endl;
-
-                saveToFile();  // Aktualizujemy plik po usunięciu
+                productCount--;
+                cout << "Produkt usunięty pomyślnie!" << endl;
                 return;
             }
         }
@@ -95,80 +91,34 @@ public:
     }
 
     // Wyświetla wszystkie produkty
-    void displayProducts() {
-        if (count == 0) {
+    void displayProducts() const {
+        if (productCount == 0) {
             cout << "Brak produktów w katalogu!" << endl;
             return;
         }
 
-        for (int i = 0; i < count; i++) {
-            products[i]->display();
+        for (int i = 0; i < productCount; i++) {
+            products[i].display();
         }
-    }
-
-    // **Zapisuje aktualne produkty do pliku**
-    void saveToFile() {
-        FILE* file = fopen(filename, "w");  // Otwieramy plik do nadpisania
-        if (!file) {
-            cout << "Błąd otwierania pliku do zapisu!" << endl;
-            return;
-        }
-
-        // Zapisujemy każdy produkt w osobnej linii
-        for (int i = 0; i < count; i++) {
-            fprintf(file, "%d %s %s %.2f %d\n", products[i]->id, products[i]->name,
-                    products[i]->category, products[i]->price, products[i]->quantity);
-        }
-
-        fclose(file);
-        cout << "Dane zapisane do pliku!" << endl;
-    }
-
-    // **Wczytuje produkty z pliku do pamięci**
-    void loadFromFile() {
-        FILE* file = fopen(filename, "r");  // Otwieramy plik do odczytu
-        if (!file) {
-            cout << "Brak zapisanych danych!" << endl;
-            return;
-        }
-
-        count = 0;  // Resetujemy licznik produktów
-
-        // Wczytujemy produkty dopóki `fscanf()` zwraca poprawne dane
-        while (count < MAX_PRODUCTS) {
-            int id, quantity;
-            float price;
-            char name[MAX_LEN], category[MAX_LEN];
-
-            // Jeśli `fscanf` nie wczyta pełnych 5 wartości, przerywamy pętlę
-            if (fscanf(file, "%d %s %s %f %d", &id, name, category, &price, &quantity) != 5) {
-                break;
-            }
-
-            // Tworzymy nowy produkt i dodajemy do tablicy
-            products[count] = new Product(id, name, category, price, quantity);
-            count++;
-        }
-
-        fclose(file);
-        cout << "Dane załadowane z pliku!" << endl;
     }
 };
 
-// **Funkcja główna – obsługuje menu użytkownika**
+// Funkcja główna – obsługuje menu użytkownika
 int main() {
     ProductManager manager;
-    manager.loadFromFile();  // Wczytujemy produkty na starcie programu
 
     int choice;
     while (true) {
         cout << "\n1. Dodaj produkt\n2. Usuń produkt\n3. Wyświetl produkty\n4. Wyjście\nWybór: ";
         cin >> choice;
 
-        if (choice == 1) manager.addProduct();
-        else if (choice == 2) manager.removeProduct();
-        else if (choice == 3) manager.displayProducts();
-        else break;
+        switch (choice) {
+            case 1: manager.addProduct(); break;
+            case 2: manager.removeProduct(); break;
+            case 3: manager.displayProducts(); break;
+            case 4: return 0;
+            default: cout << "Nieprawidłowy wybór! Spróbuj ponownie." << endl;
+        }
     }
 
     return 0;
