@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <cstring>
 #include <cstdio>  // Do obsługi plików: fopen(), fprintf(), fscanf(), fclose()
@@ -8,6 +7,7 @@
 
 using namespace std;
 
+// Klasa reprezentująca pojedynczy produkt
 class Product {
 public:
     int id;
@@ -30,13 +30,15 @@ public:
     }
 };
 
+// Klasa zarządzająca produktami i obsługą pliku
 class ProductManager {
 private:
-    Product* products[MAX_PRODUCTS];
-    int count = 0;
-    const char* filename = "products.txt";  // Nazwa pliku do zapisu i odczytu
+    Product* products[MAX_PRODUCTS];  // Tablica wskaźników na produkty
+    int count = 0;  // Licznik produktów
+    const char* filename = "products.txt";  // Plik do przechowywania danych
 
 public:
+    // Dodaje nowy produkt i zapisuje do pliku
     void addProduct() {
         if (count >= MAX_PRODUCTS) {
             cout << "Nie można dodać więcej produktów!" << endl;
@@ -62,11 +64,12 @@ public:
 
         products[count] = new Product(count + 1, name, category, price, quantity);
         count++;
-        cout << "Produkt dodany!" << endl;
 
-        saveToFile();  // Zapisujemy po dodaniu nowego produktu
+        cout << "Produkt dodany!" << endl;
+        saveToFile();  // Zapisujemy dane do pliku po dodaniu produktu
     }
 
+    // Usuwa produkt po ID i zapisuje do pliku
     void removeProduct() {
         int id;
         cout << "Podaj ID produktu do usunięcia: ";
@@ -74,8 +77,9 @@ public:
 
         for (int i = 0; i < count; i++) {
             if (products[i]->id == id) {
-                delete products[i];
+                delete products[i];  // Usuwamy produkt z pamięci
 
+                // Przesuwamy pozostałe produkty, aby uniknąć pustego miejsca w tablicy
                 for (int j = i; j < count - 1; j++) {
                     products[j] = products[j + 1];
                 }
@@ -83,13 +87,14 @@ public:
                 count--;
                 cout << "Produkt usunięty!" << endl;
 
-                saveToFile();  // Zapisujemy zmiany do pliku
+                saveToFile();  // Aktualizujemy plik po usunięciu
                 return;
             }
         }
         cout << "Nie znaleziono produktu o podanym ID!" << endl;
     }
 
+    // Wyświetla wszystkie produkty
     void displayProducts() {
         if (count == 0) {
             cout << "Brak produktów w katalogu!" << endl;
@@ -101,13 +106,15 @@ public:
         }
     }
 
+    // **Zapisuje aktualne produkty do pliku**
     void saveToFile() {
-        FILE* file = fopen(filename, "w");  // Otwieramy plik do zapisu
+        FILE* file = fopen(filename, "w");  // Otwieramy plik do nadpisania
         if (!file) {
             cout << "Błąd otwierania pliku do zapisu!" << endl;
             return;
         }
 
+        // Zapisujemy każdy produkt w osobnej linii
         for (int i = 0; i < count; i++) {
             fprintf(file, "%d %s %s %.2f %d\n", products[i]->id, products[i]->name,
                     products[i]->category, products[i]->price, products[i]->quantity);
@@ -117,6 +124,7 @@ public:
         cout << "Dane zapisane do pliku!" << endl;
     }
 
+    // **Wczytuje produkty z pliku do pamięci**
     void loadFromFile() {
         FILE* file = fopen(filename, "r");  // Otwieramy plik do odczytu
         if (!file) {
@@ -124,33 +132,33 @@ public:
             return;
         }
 
-        count = 0;  // Resetujemy liczbę produktów
+        count = 0;  // Resetujemy licznik produktów
 
-        while (!feof(file) && count < MAX_PRODUCTS) {
+        // Wczytujemy produkty dopóki `fscanf()` zwraca poprawne dane
+        while (count < MAX_PRODUCTS) {
             int id, quantity;
             float price;
             char name[MAX_LEN], category[MAX_LEN];
 
-            if (fscanf(file, "%d %s %s %f %d", &id, name, category, &price, &quantity) == 5) {
-                products[count] = new Product(id, name, category, price, quantity);
-                count++;
+            // Jeśli `fscanf` nie wczyta pełnych 5 wartości, przerywamy pętlę
+            if (fscanf(file, "%d %s %s %f %d", &id, name, category, &price, &quantity) != 5) {
+                break;
             }
+
+            // Tworzymy nowy produkt i dodajemy do tablicy
+            products[count] = new Product(id, name, category, price, quantity);
+            count++;
         }
 
         fclose(file);
         cout << "Dane załadowane z pliku!" << endl;
     }
-
-    ~ProductManager() {
-        for (int i = 0; i < count; i++) {
-            delete products[i];
-        }
-    }
 };
 
+// **Funkcja główna – obsługuje menu użytkownika**
 int main() {
     ProductManager manager;
-    manager.loadFromFile();  // Wczytujemy produkty przy starcie programu
+    manager.loadFromFile();  // Wczytujemy produkty na starcie programu
 
     int choice;
     while (true) {
