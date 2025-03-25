@@ -1,153 +1,186 @@
 #include <iostream>
-#include <cstdio>
+#include <cstdio> 
 #include <cstring>
 
-#define MAX_PRODUCTS 100
-#define MAX_LEN 50
+#define ITEM_LIMIT 100
+#define MAX_LENGTH 50
 
 using namespace std;
 
-struct Product {
-    int id;
-    char name[MAX_LEN];
-    char category[MAX_LEN];
-    float price;
-    int quantity;
-};
+// Globalne tablice do przechowywania danych produktów
+int itemID[ITEM_LIMIT];
+char itemName[ITEM_LIMIT][MAX_LENGTH];
+char itemCategory[ITEM_LIMIT][MAX_LENGTH];
+float itemPrice[ITEM_LIMIT];
+int itemStock[ITEM_LIMIT];
+int totalItems = 0;
 
-Product products[MAX_PRODUCTS]; // Tablica przechowująca produkty
-int productCount = 0;           // Liczba produktów w tablicy
+// Deklaracje funkcji
+void showMenu();
+void addItem();
+void removeItem();
+void listItems();
+void saveDatabase();
+void loadDatabase();
 
-// Funkcja dodająca nowy produkt
-void addProduct() {
-    if (productCount >= MAX_PRODUCTS) {
-        cout << "Baza produktów jest pełna!" << endl;
-        return;
+int main() {
+    // Próba wczytania bazy na starcie programu
+    loadDatabase();
+    
+    int choice;
+    bool isRunning = true;
+    
+    while (isRunning) {
+        showMenu();
+        cin >> choice;
+        
+        switch (choice) {
+            case 1: addItem(); break;
+            case 2: removeItem(); break;
+            case 3: listItems(); break;
+            case 4: saveDatabase(); break;
+            case 5: loadDatabase(); break;
+            case 6: 
+                cout << "Kończenie programu. Do widzenia!" << endl;
+                isRunning = false;
+                break;
+            default: cout << "Nieprawidłowa opcja! Spróbuj ponownie." << endl;
+        }
     }
-
-    Product newProduct;
-    newProduct.id = productCount + 1;
-
-    cout << "Podaj nazwę produktu: ";
-    cin.ignore(); // Wyczyszczenie wczesniejszych inputow
-    cin.getline(newProduct.name, MAX_LEN); // Wczytanie całej linii tekstu jako nazwy produktu
-
-    cout << "Podaj kategorię produktu: ";
-    cin.getline(newProduct.category, MAX_LEN);
-
-    cout << "Podaj cenę: ";
-    cin >> newProduct.price;
-
-    cout << "Podaj ilość: ";
-    cin >> newProduct.quantity;
-
-    products[productCount++] = newProduct; // Dodanie nowego produktu do tablicy na pozycji prodcutCount
-    cout << "Produkt dodany!" << endl;
+    
+    return 0;
 }
 
-// Funkcja usuwająca produkt po ID
-void removeProduct() {
+// Wyświetlanie menu głównego
+void showMenu() {
+    cout << "\n===== SYSTEM BAZY PRODUKTÓW =====\n"
+         << "1. Dodaj nowy produkt\n"
+         << "2. Usuń produkt\n"
+         << "3. Pokaż wszystkie produkty\n"
+         << "4. Zapisz bazę danych\n"
+         << "5. Wczytaj bazę danych\n"
+         << "6. Wyjdź z programu\n"
+         << "Wybierz opcję: ";
+}
+
+// Dodawanie nowego produktu do bazy
+void addItem() {
+    if (totalItems >= ITEM_LIMIT) {
+        cout << "Błąd: Baza danych jest pełna!" << endl;
+        return;
+    }
+    
+    // Generowanie ID (po prostu zwiększamy numer)
+    itemID[totalItems] = totalItems + 1;
+    
+    // Pobieranie danych produktu
+    cout << "Podaj nazwę produktu: ";
+    cin.ignore();
+    cin.getline(itemName[totalItems], MAX_LENGTH);
+    
+    cout << "Podaj kategorię produktu: ";
+    cin.getline(itemCategory[totalItems], MAX_LENGTH);
+    
+    cout << "Podaj cenę produktu: ";
+    cin >> itemPrice[totalItems];
+    
+    cout << "Podaj dostępną ilość: ";
+    cin >> itemStock[totalItems];
+    
+    totalItems++;
+    cout << "Produkt został dodany pomyślnie!" << endl;
+}
+
+// Usuwanie produktu na podstawie ID
+void removeItem() {
+    if (totalItems == 0) {
+        cout << "Baza danych jest pusta!" << endl;
+        return;
+    }
+    
     int id;
     cout << "Podaj ID produktu do usunięcia: ";
     cin >> id;
-
-    int index = -1; // Defaultowo produkt jest nieodnaleziony (brak takiego ID)
-
-    // Szukanie produktu o podanym ID
-    for (int i = 0; i < productCount; i++) {
-        if (products[i].id == id) {
-            index = i;
+    
+    // Wyszukiwanie produktu o podanym ID
+    int position = -1;
+    for (int i = 0; i < totalItems; i++) {
+        if (itemID[i] == id) {
+            position = i;
             break;
         }
     }
-
-    if (index == -1) {
-        cout << "Nie znaleziono produktu o podanym ID!" << endl;
+    
+    if (position == -1) {
+        cout << "Produkt o podanym ID nie istnieje!" << endl;
         return;
     }
-
-    // Przesunięcie produktów w tablicy, aby usunąć wybrany produkt
-    for (int i = index; i < productCount - 1; i++) {
-        products[i] = products[i + 1];
+    
+    // Przesuwanie produktów w tablicy aby usunąć wybrany
+    for (int i = position; i < totalItems - 1; i++) {
+        itemID[i] = itemID[i + 1];
+        strcpy(itemName[i], itemName[i + 1]);
+        strcpy(itemCategory[i], itemCategory[i + 1]);
+        itemPrice[i] = itemPrice[i + 1];
+        itemStock[i] = itemStock[i + 1];
     }
-
-    productCount--;  // Zmniejszenie liczby produktów
-    cout << "Produkt usunięty!" << endl;
+    
+    totalItems--;
+    cout << "Produkt został usunięty pomyślnie!" << endl;
 }
 
-// Funkcja zapisująca produkty do pliku
-void saveToFile() {
+// Wyświetlanie wszystkich produktów
+void listItems() {
+    if (totalItems == 0) {
+        cout << "Baza danych jest pusta!" << endl;
+        return;
+    }
+    
+    cout << "\nLista wszystkich produktów:\n";
+    cout << "ID | Nazwa | Kategoria | Cena | Ilość\n";
+    cout << "-----------------------------------\n";
+    
+    for (int i = 0; i < totalItems; i++) {
+        cout << itemID[i] << " | " << itemName[i] << " | " 
+             << itemCategory[i] << " | " << itemPrice[i] << " zł | " 
+             << itemStock[i] << " szt." << endl;
+    }
+}
+
+// Zapisywanie bazy danych do pliku
+void saveDatabase() {
     FILE* file = fopen("products.txt", "w");
     if (!file) {
-        cout << "Błąd zapisu do pliku!" << endl;
+        cout << "Błąd: Nie można otworzyć pliku do zapisu!" << endl;
         return;
     }
-
-    for (int i = 0; i < productCount; i++) {
-        fprintf(file, "%d %s %s %.2f %d\n", products[i].id, products[i].name, 
-                products[i].category, products[i].price, products[i].quantity);
+    
+    for (int i = 0; i < totalItems; i++) {
+        fprintf(file, "%d %s %s %.2f %d\n", 
+                itemID[i], itemName[i], itemCategory[i], 
+                itemPrice[i], itemStock[i]);
     }
-
+    
     fclose(file);
-    cout << "Produkty zapisane do pliku!" << endl;
+    cout << "Baza danych została zapisana pomyślnie!" << endl;
 }
 
-// Funkcja wczytująca produkty z pliku
-void loadFromFile() {
+// Wczytywanie bazy danych z pliku
+void loadDatabase() {
     FILE* file = fopen("products.txt", "r");
     if (!file) {
-        cout << "Brak pliku do odczytu." << endl;
+        cout << "Informacja: Plik bazy danych nie istnieje." << endl;
         return;
     }
-
-    productCount = 0;
-    while (fscanf(file, "%d %s %s %f %d", // Podanie jakich typow wczytywane sa dane
-                  &products[productCount].id, products[productCount].name,
-                  products[productCount].category, &products[productCount].price, // Przypisanie odpowiednich danych do pol struktury product, products[]
-                  &products[productCount].quantity) != EOF) { // EOF To End Of File funckji fscanf() i konczy sie z zakonczeniem petli while
-        productCount++; // Z kazdym wczytanym produktem dodajemy jedna liczbe do productCount aby sledzic ich liczbe
+    
+    totalItems = 0;
+    while (fscanf(file, "%d %s %s %f %d", 
+                  &itemID[totalItems], itemName[totalItems], 
+                  itemCategory[totalItems], &itemPrice[totalItems], 
+                  &itemStock[totalItems]) != EOF && totalItems < ITEM_LIMIT) {
+        totalItems++;
     }
-
+    
     fclose(file);
-    cout << "Produkty wczytane z pliku!" << endl;
-}
-
-// Funkcja wyświetlająca listę produktów
-void displayProducts() {
-    if (productCount == 0) {
-        cout << "Brak produktów!" << endl;
-        return;
-    }
-
-    for (int i = 0; i < productCount; i++) {
-        cout << products[i].id << ". " << products[i].name << " | " 
-             << products[i].category << " | " << products[i].price << " zł | " 
-             << products[i].quantity << " szt." << endl;
-    }
-}
-
-// Funkcja wyświetlająca menu i obsługująca wybory użytkownika
-void menu() {
-    int choice;
-    while (true) {
-        cout << "\n1. Dodaj produkt\n2. Usuń produkt\n3. Wyświetl produkty\n"
-             << "4. Zapisz do pliku\n5. Wczytaj z pliku\n6. Wyjście\n"
-             << "Wybór: ";
-        cin >> choice;
-
-        switch (choice) {
-            case 1: addProduct(); break;
-            case 2: removeProduct(); break;
-            case 3: displayProducts(); break;
-            case 4: saveToFile(); break;
-            case 5: loadFromFile(); break;
-            case 6: return;
-            default: cout << "Nieprawidłowy wybór!" << endl;
-        }
-    }
-}
-
-int main() {
-    menu();
-    return 0;
+    cout << "Wczytano " << totalItems << " produktów z pliku." << endl;
 }
