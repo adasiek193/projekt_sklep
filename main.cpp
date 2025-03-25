@@ -1,75 +1,78 @@
 #include <iostream>
-#include <cstring>
-
-#define MAX_PRODUCTS 100
-#define MAX_LEN 50
+#include <vector>
+#include <string>
+#include <algorithm>
 
 using namespace std;
 
-// Klasa reprezentująca pojedynczy produkt
-class Product {
-public:
+class Produkt {
+private:
     int id;
-    char name[MAX_LEN];
-    char category[MAX_LEN];
-    float price;
-    int quantity;
+    string nazwa;
+    string kategoria;
+    float cena;
+    int stan;
 
-    // Konstruktor do inicjalizacji produktu
-    Product(int id = 0, const char* name = "", const char* category = "", float price = 0, int quantity = 0) {
-        this->id = id;
-        strncpy(this->name, name, MAX_LEN);
-        strncpy(this->category, category, MAX_LEN);
-        this->price = price;
-        this->quantity = quantity;
-    }
+public:
+    // Konstruktor
+    Produkt(int _id, const string& _nazwa, const string& _kategoria, 
+            float _cena, int _stan) 
+        : id(_id), nazwa(_nazwa), kategoria(_kategoria), cena(_cena), stan(_stan) {}
 
-    // Metoda do wyświetlania informacji o produkcie
-    void display() const {
-        cout << "ID: " << id << ", Nazwa: " << name << ", Kategoria: " << category
-             << ", Cena: " << price << " zł, Ilość: " << quantity << " szt." << endl;
+    // Gettery
+    int getId() const { return id; }
+    string getNazwa() const { return nazwa; }
+    string getKategoria() const { return kategoria; }
+    float getCena() const { return cena; }
+    int getStan() const { return stan; }
+
+    // Metoda wyświetlania szczegółów produktu
+    void wyswietlSzczegoly() const {
+        cout << "ID: " << id << endl;
+        cout << "Nazwa: " << nazwa << endl;
+        cout << "Kategoria: " << kategoria << endl;
+        cout << "Cena: " << cena << " zł" << endl;
+        cout << "Stan magazynowy: " << stan << endl;
     }
 };
 
-// Klasa zarządzająca produktami
-class ProductManager {
+class MenadzerProduktow {
 private:
-    Product products[MAX_PRODUCTS];  // Tablica przechowująca produkty
-    int productCount = 0;            // Liczba produktów w tablicy
+    vector<Produkt> produkty;
+    int nastepneId;
 
 public:
-    // Dodaje nowy produkt
-    void addProduct() {
-        if (productCount >= MAX_PRODUCTS) {
-            cout << "Nie można dodać więcej produktów! Osiągnięto limit." << endl;
-            return;
-        }
+    // Konstruktor
+    MenadzerProduktow() : nastepneId(1) {}
 
-        char name[MAX_LEN], category[MAX_LEN];
-        float price;
-        int quantity;
+    // Dodawanie nowego produktu
+    void dodajProdukt() {
+        string nazwa, kategoria;
+        float cena;
+        int stan;
 
         cout << "Podaj nazwę produktu: ";
         cin.ignore();
-        cin.getline(name, MAX_LEN);
+        getline(cin, nazwa);
 
         cout << "Podaj kategorię produktu: ";
-        cin.getline(category, MAX_LEN);
+        getline(cin, kategoria);
 
         cout << "Podaj cenę produktu: ";
-        cin >> price;
+        cin >> cena;
 
-        cout << "Podaj ilość produktu: ";
-        cin >> quantity;
+        cout << "Podaj stan magazynowy: ";
+        cin >> stan;
 
-        products[productCount++] = Product(productCount + 1, name, category, price, quantity);
-        cout << "Produkt dodany pomyślnie!" << endl;
+        // Utworzenie i dodanie produktu
+        produkty.emplace_back(nastepneId++, nazwa, kategoria, cena, stan);
+        cout << "Produkt został dodany pomyślnie!" << endl;
     }
 
-    // Usuwa produkt po ID
-    void removeProduct() {
-        if (productCount == 0) {
-            cout << "Brak produktów do usunięcia!" << endl;
+    // Usuwanie produktu po ID
+    void usunProdukt() {
+        if (produkty.empty()) {
+            cout << "Brak produktów do usunięcia." << endl;
             return;
         }
 
@@ -77,49 +80,46 @@ public:
         cout << "Podaj ID produktu do usunięcia: ";
         cin >> id;
 
-        for (int i = 0; i < productCount; i++) {
-            if (products[i].id == id) {
-                for (int j = i; j < productCount - 1; j++) {
-                    products[j] = products[j + 1];
-                }
-                productCount--;
-                cout << "Produkt usunięty pomyślnie!" << endl;
-                return;
-            }
+        // Znalezienie i usunięcie produktu
+        auto it = find_if(produkty.begin(), produkty.end(), 
+            [id](const Produkt& p) { return p.getId() == id; });
+
+        if (it != produkty.end()) {
+            produkty.erase(it);
+            cout << "Produkt został usunięty pomyślnie!" << endl;
+        } else {
+            cout << "Nie znaleziono produktu!" << endl;
         }
-        cout << "Nie znaleziono produktu o podanym ID!" << endl;
     }
 
-    // Wyświetla wszystkie produkty
-    void displayProducts() const {
-        if (productCount == 0) {
-            cout << "Brak produktów w katalogu!" << endl;
+    // Wyświetlanie wszystkich produktów
+    void wyswietlProdukty() const {
+        if (produkty.empty()) {
+            cout << "Brak produktów w bazie." << endl;
             return;
         }
 
-        for (int i = 0; i < productCount; i++) {
-            products[i].display();
+        for (const auto& produkt : produkty) {
+            produkt.wyswietlSzczegoly();
+            cout << "-------------------" << endl;
         }
     }
 };
 
-// Funkcja główna – obsługuje menu użytkownika
 int main() {
-    ProductManager manager;
+    MenadzerProduktow menadzer;
 
-    int choice;
-    while (true) {
-        cout << "\n1. Dodaj produkt\n2. Usuń produkt\n3. Wyświetl produkty\n4. Wyjście\nWybór: ";
-        cin >> choice;
+    // Przykładowe użycie funkcjonalności
+    menadzer.dodajProdukt();
+    menadzer.dodajProdukt();
+    
+    cout << "\nAktualne produkty:" << endl;
+    menadzer.wyswietlProdukty();
 
-        switch (choice) {
-            case 1: manager.addProduct(); break;
-            case 2: manager.removeProduct(); break;
-            case 3: manager.displayProducts(); break;
-            case 4: return 0;
-            default: cout << "Nieprawidłowy wybór! Spróbuj ponownie." << endl;
-        }
-    }
+    menadzer.usunProdukt();
+
+    cout << "\nPozostałe produkty:" << endl;
+    menadzer.wyswietlProdukty();
 
     return 0;
 }
