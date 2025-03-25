@@ -6,73 +6,52 @@
 using namespace std;
 
 class Produkt {
-private:
+public:
     int id;
     string nazwa;
     string kategoria;
     float cena;
     int stan;
 
-public:
-    // Konstruktor
-    Produkt(int _id, const string& _nazwa, const string& _kategoria, 
-            float _cena, int _stan) 
-        : id(_id), nazwa(_nazwa), kategoria(_kategoria), cena(_cena), stan(_stan) {}
-
-    // Gettery
-    int getId() const { return id; }
-    string getNazwa() const { return nazwa; }
-    string getKategoria() const { return kategoria; }
-    float getCena() const { return cena; }
-    int getStan() const { return stan; }
-
-    // Metoda wyświetlania szczegółów produktu
-    void wyswietlSzczegoly() const {
+    void wyswietl() {
         cout << "ID: " << id << endl;
         cout << "Nazwa: " << nazwa << endl;
         cout << "Kategoria: " << kategoria << endl;
         cout << "Cena: " << cena << " zł" << endl;
-        cout << "Stan magazynowy: " << stan << endl;
+        cout << "Stan: " << stan << endl;
     }
 };
 
 class MenadzerProduktow {
 private:
     vector<Produkt> produkty;
-    int nastepneId;
+    int nastepneId = 1;
 
 public:
-    // Konstruktor
-    MenadzerProduktow() : nastepneId(1) {}
+    void dodaj() {
+        Produkt p;
+        p.id = nastepneId++;
 
-    // Dodawanie nowego produktu
-    void dodajProdukt() {
-        string nazwa, kategoria;
-        float cena;
-        int stan;
-
-        cout << "Podaj nazwę produktu: ";
+        cout << "Nazwa produktu: ";
         cin.ignore();
-        getline(cin, nazwa);
+        getline(cin, p.nazwa);
 
-        cout << "Podaj kategorię produktu: ";
-        getline(cin, kategoria);
+        cout << "Kategoria: ";
+        getline(cin, p.kategoria);
 
-        cout << "Podaj cenę produktu: ";
-        cin >> cena;
+        cout << "Cena: ";
+        cin >> p.cena;
 
-        cout << "Podaj stan magazynowy: ";
-        cin >> stan;
+        cout << "Stan magazynowy: ";
+        cin >> p.stan;
 
-        // Utworzenie i dodanie produktu
-        produkty.emplace_back(nastepneId++, nazwa, kategoria, cena, stan);
-        cout << "Produkt został dodany pomyślnie!" << endl;
+        produkty.push_back(p);
+        cout << "Dodano produkt." << endl;
     }
 
-    // Usuwanie produktu po ID
-    void usunProdukt() {
+    void usun() {
         if (produkty.empty()) {
-            cout << "Brak produktów do usunięcia." << endl;
+            cout << "Brak produktów." << endl;
             return;
         }
 
@@ -80,46 +59,43 @@ public:
         cout << "Podaj ID produktu do usunięcia: ";
         cin >> id;
 
-        // Znalezienie i usunięcie produktu
         auto it = find_if(produkty.begin(), produkty.end(), 
-            [id](const Produkt& p) { return p.getId() == id; });
+            [id](const Produkt& p) { return p.id == id; });
 
         if (it != produkty.end()) {
             produkty.erase(it);
-            cout << "Produkt został usunięty pomyślnie!" << endl;
+            cout << "Usunięto produkt." << endl;
         } else {
-            cout << "Nie znaleziono produktu!" << endl;
+            cout << "Nie znaleziono produktu." << endl;
         }
     }
 
-    // Wyświetlanie wszystkich produktów
-    void wyswietlProdukty() const {
+    void wyswietl() {
         if (produkty.empty()) {
-            cout << "Brak produktów w bazie." << endl;
+            cout << "Brak produktów." << endl;
             return;
         }
 
-        for (const auto& produkt : produkty) {
-            produkt.wyswietlSzczegoly();
-            cout << "-------------------" << endl;
+        for (const auto& p : produkty) {
+            p.wyswietl();
+            cout << "---" << endl;
         }
     }
 };
 
 int main() {
-    MenadzerProduktow menadzer;
+    MenadzerProduktow m;
 
-    // Przykładowe użycie funkcjonalności
-    menadzer.dodajProdukt();
-    menadzer.dodajProdukt();
+    m.dodaj();
+    m.dodaj();
     
-    cout << "\nAktualne produkty:" << endl;
-    menadzer.wyswietlProdukty();
+    cout << "\nProdukty:" << endl;
+    m.wyswietl();
 
-    menadzer.usunProdukt();
+    m.usun();
 
     cout << "\nPozostałe produkty:" << endl;
-    menadzer.wyswietlProdukty();
+    m.wyswietl();
 
     return 0;
 }
