@@ -2,30 +2,30 @@
 #include <cstdio> 
 #include <cstring>
 
-#define ITEM_LIMIT 100
+#define PRODUCT_LIMIT 100
 #define MAX_LENGTH 50
 
 using namespace std;
 
 // Globalne tablice do przechowywania danych produktów
-int itemID[ITEM_LIMIT];
-char itemName[ITEM_LIMIT][MAX_LENGTH];
-char itemCategory[ITEM_LIMIT][MAX_LENGTH];
-float itemPrice[ITEM_LIMIT];
-int itemStock[ITEM_LIMIT];
-int totalItems = 0;
+int productID[PRODUCT_LIMIT];
+char productName[PRODUCT_LIMIT][MAX_LENGTH];
+char productCategory[PRODUCT_LIMIT][MAX_LENGTH];
+float productPrice[PRODUCT_LIMIT];
+int productStock[PRODUCT_LIMIT];
+int totalProducts = 0;
 
 // Deklaracje funkcji
 void showMenu();
-void addItem();
-void removeItem();
-void listItems();
-void saveDatabase();
-void loadDatabase();
+void addProduct();
+void removeProduct();
+void listProducts();
+void saveData();
+void loadData();
 
 int main() {
     // Próba wczytania bazy na starcie programu
-    loadDatabase();
+    loadData();
     
     int choice;
     bool isRunning = true;
@@ -35,11 +35,11 @@ int main() {
         cin >> choice;
         
         switch (choice) {
-            case 1: addItem(); break;
-            case 2: removeItem(); break;
-            case 3: listItems(); break;
-            case 4: saveDatabase(); break;
-            case 5: loadDatabase(); break;
+            case 1: addProduct(); break;
+            case 2: removeProduct(); break;
+            case 3: listProducts(); break;
+            case 4: saveData(); break;
+            case 5: loadData(); break;
             case 6: 
                 cout << "Kończenie programu. Do widzenia!" << endl;
                 isRunning = false;
@@ -64,36 +64,36 @@ void showMenu() {
 }
 
 // Dodawanie nowego produktu do bazy
-void addItem() {
-    if (totalItems >= ITEM_LIMIT) {
+void addProduct() {
+    if (totalProducts >= PRODUCT_LIMIT) {
         cout << "Błąd: Baza danych jest pełna!" << endl;
         return;
     }
     
     // Generowanie ID (po prostu zwiększamy numer)
-    itemID[totalItems] = totalItems + 1;
+    productID[totalProducts] = totalProducts + 1;
     
     // Pobieranie danych produktu
     cout << "Podaj nazwę produktu: ";
     cin.ignore();
-    cin.getline(itemName[totalItems], MAX_LENGTH);
+    cin.getline(productName[totalProducts], MAX_LENGTH);
     
     cout << "Podaj kategorię produktu: ";
-    cin.getline(itemCategory[totalItems], MAX_LENGTH);
+    cin.getline(productCategory[totalProducts], MAX_LENGTH);
     
     cout << "Podaj cenę produktu: ";
-    cin >> itemPrice[totalItems];
+    cin >> productPrice[totalProducts];
     
     cout << "Podaj dostępną ilość: ";
-    cin >> itemStock[totalItems];
+    cin >> productStock[totalProducts];
     
-    totalItems++;
+    totalProducts++;
     cout << "Produkt został dodany pomyślnie!" << endl;
 }
 
 // Usuwanie produktu na podstawie ID
-void removeItem() {
-    if (totalItems == 0) {
+void removeProduct() {
+    if (totalProducts == 0) {
         cout << "Baza danych jest pusta!" << endl;
         return;
     }
@@ -104,8 +104,8 @@ void removeItem() {
     
     // Wyszukiwanie produktu o podanym ID
     int position = -1;
-    for (int i = 0; i < totalItems; i++) {
-        if (itemID[i] == id) {
+    for (int i = 0; i < totalProducts; i++) {
+        if (productID[i] == id) {
             position = i;
             break;
         }
@@ -117,21 +117,21 @@ void removeItem() {
     }
     
     // Przesuwanie produktów w tablicy aby usunąć wybrany
-    for (int i = position; i < totalItems - 1; i++) {
-        itemID[i] = itemID[i + 1];
-        strcpy(itemName[i], itemName[i + 1]);
-        strcpy(itemCategory[i], itemCategory[i + 1]);
-        itemPrice[i] = itemPrice[i + 1];
-        itemStock[i] = itemStock[i + 1];
+    for (int i = position; i < totalProducts - 1; i++) {
+        productID[i] = productID[i + 1];
+        strcpy(productName[i], productName[i + 1]);
+        strcpy(productCategory[i], productCategory[i + 1]);
+        productPrice[i] = productPrice[i + 1];
+        productStock[i] = productStock[i + 1];
     }
     
-    totalItems--;
+    totalProducts--;
     cout << "Produkt został usunięty pomyślnie!" << endl;
 }
 
 // Wyświetlanie wszystkich produktów
-void listItems() {
-    if (totalItems == 0) {
+void listProducts() {
+    if (totalProducts == 0) {
         cout << "Baza danych jest pusta!" << endl;
         return;
     }
@@ -140,25 +140,25 @@ void listItems() {
     cout << "ID | Nazwa | Kategoria | Cena | Ilość\n";
     cout << "-----------------------------------\n";
     
-    for (int i = 0; i < totalItems; i++) {
-        cout << itemID[i] << " | " << itemName[i] << " | " 
-             << itemCategory[i] << " | " << itemPrice[i] << " zł | " 
-             << itemStock[i] << " szt." << endl;
+    for (int i = 0; i < totalProducts; i++) {
+        cout << productID[i] << " | " << productName[i] << " | " 
+             << productCategory[i] << " | " << productPrice[i] << " zł | " 
+             << productStock[i] << " szt." << endl;
     }
 }
 
 // Zapisywanie bazy danych do pliku
-void saveDatabase() {
+void saveData() {
     FILE* file = fopen("products.txt", "w");
     if (!file) {
         cout << "Błąd: Nie można otworzyć pliku do zapisu!" << endl;
         return;
     }
     
-    for (int i = 0; i < totalItems; i++) {
+    for (int i = 0; i < totalProducts; i++) {
         fprintf(file, "%d %s %s %.2f %d\n", 
-                itemID[i], itemName[i], itemCategory[i], 
-                itemPrice[i], itemStock[i]);
+                productID[i], productName[i], productCategory[i], 
+                productPrice[i], productStock[i]);
     }
     
     fclose(file);
@@ -166,21 +166,21 @@ void saveDatabase() {
 }
 
 // Wczytywanie bazy danych z pliku
-void loadDatabase() {
+void loadData() {
     FILE* file = fopen("products.txt", "r");
     if (!file) {
         cout << "Informacja: Plik bazy danych nie istnieje." << endl;
         return;
     }
     
-    totalItems = 0;
+    totalProducts = 0;
     while (fscanf(file, "%d %s %s %f %d", 
-                  &itemID[totalItems], itemName[totalItems], 
-                  itemCategory[totalItems], &itemPrice[totalItems], 
-                  &itemStock[totalItems]) != EOF && totalItems < ITEM_LIMIT) {
-        totalItems++;
+                  &productID[totalProducts], productName[totalProducts], 
+                  productCategory[totalProducts], &productPrice[totalProducts], 
+                  &productStock[totalProducts]) != EOF && totalProducts < PRODUCT_LIMIT) {
+        totalProducts++;
     }
     
     fclose(file);
-    cout << "Wczytano " << totalItems << " produktów z pliku." << endl;
+    cout << "Wczytano " << totalProducts << " produktów z pliku." << endl;
 }
